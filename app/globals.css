@@ -37,3 +37,13 @@ body {
 }
 
 .serif { font-family: 'DM Serif Display', serif; }
+
+html {
+  color-scheme: light only;
+}
+
+/* Evitar que el modo oscuro del sistema sobreescriba los colores */
+@media (prefers-color-scheme: dark) {
+  html { color-scheme: light; }
+  body { background: var(--bg) !important; color: var(--ink) !important; }
+}
