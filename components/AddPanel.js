@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { today } from '@/lib/storage'
+import BarcodeScanner from './BarcodeScanner'
 
 const EMOJIS = ['🥩','🥛','🥚','🥬','🍎','🧀','🐟','🍞','🫙','🧄','🍋','🥕','🍅','🥦','🧅']
 
@@ -162,13 +163,9 @@ export default function AddPanel({ onAdd, onClose }) {
           </div>
         )}
 
-        {/* Barcode placeholder */}
+        {/* Barcode scanner */}
         {method === 'barcode' && (
-          <div className="border-2 border-dashed border-[#E3DED3] rounded-2xl p-8 text-center mb-4">
-            <span className="text-4xl block mb-2">📷</span>
-            <span className="text-[15px] font-medium text-[#6B6559] block mb-1">Escaneo de código</span>
-            <span className="text-[12px] text-[#9C9488]">Próximamente en la Fase 4</span>
-          </div>
+          <BarcodeScanner onDetect={p => { onAdd(p); onClose() }} />
         )}
       </div>
     </div>
