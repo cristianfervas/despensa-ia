@@ -1,0 +1,24 @@
+{
+  "name": "Despensa IA",
+  "short_name": "Despensa",
+  "description": "Tu cocina inteligente",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F5F2EC",
+  "theme_color": "#F5F2EC",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
