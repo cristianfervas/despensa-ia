@@ -50,14 +50,21 @@ export default function BarcodeScanner({ onDetect }) {
 
   return (
     <div>
-      {/* Scanner viewfinder — hidden during loading/error states */}
+      {/* El div siempre está en el DOM con tamaño real para que la librería pueda renderizar el video */}
       <div
         id={scannerDivId}
-        className={status === 'scanning' ? 'rounded-2xl overflow-hidden mb-4' : 'hidden'}
+        className="rounded-2xl overflow-hidden mb-3"
+        style={{ display: status === 'scanning' || status === 'init' ? 'block' : 'none' }}
       />
 
       {status === 'init' && (
-        <div className="py-10 text-center text-[#9C9488] text-[14px]">Iniciando cámara...</div>
+        <div className="py-4 text-center text-[#9C9488] text-[14px]">Iniciando cámara...</div>
+      )}
+
+      {status === 'scanning' && (
+        <p className="text-center text-[12px] text-[#9C9488]">
+          Apunta la cámara al código de barras del producto
+        </p>
       )}
 
       {status === 'loading' && (
@@ -82,12 +89,6 @@ export default function BarcodeScanner({ onDetect }) {
           <p className="text-[12px] text-[#9C9488] mb-3">Código: {errorMsg}</p>
           <p className="text-[12px] text-[#9C9488]">Agrégalo manualmente con la pestaña Manual</p>
         </div>
-      )}
-
-      {status === 'scanning' && (
-        <p className="text-center text-[12px] text-[#9C9488] mt-1">
-          Apunta la cámara al código de barras del producto
-        </p>
       )}
     </div>
   )
