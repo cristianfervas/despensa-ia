@@ -39,13 +39,14 @@ function applyMaturity(base, maturity) {
   return Math.max(1, Math.round(base * mult))
 }
 
-export default function AddPanel({ onAdd, onClose }) {
+export default function AddPanel({ onAdd, onClose, initialName = '', initialEmoji = '' }) {
+  const initBase = initialName ? lookupDuracion(initialName) : null
   const [method, setMethod] = useState('manual')
-  const [emoji, setEmoji] = useState('🥩')
-  const [name, setName] = useState('')
+  const [emoji, setEmoji] = useState(initialEmoji || '🥩')
+  const [name, setName] = useState(initialName)
   const [date, setDate] = useState(today())
-  const [days, setDays] = useState(3)
-  const [autoBaseDays, setAutoBaseDays] = useState(null)
+  const [days, setDays] = useState(initBase ?? 3)
+  const [autoBaseDays, setAutoBaseDays] = useState(initBase)
   const [maturity, setMaturity] = useState('fresh')
   const [showDurationSelect, setShowDurationSelect] = useState(false)
   const [uploading, setUploading] = useState(false)

@@ -1,10 +1,11 @@
 'use client'
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { getProducts, addProduct, deleteProduct, updateProduct, daysLeft, statusOf } from '@/lib/storage'
+import { getProducts, addProduct, deleteProduct, updateProduct, daysLeft, statusOf, getShoppingList, saveShoppingList, toggleShoppingItem, removeShoppingItem } from '@/lib/storage'
 import ProductCard from '@/components/ProductCard'
 import RecipeCard from '@/components/RecipeCard'
 import AddPanel from '@/components/AddPanel'
 import EditPanel from '@/components/EditPanel'
+import ShoppingList from '@/components/ShoppingList'
 import NotificationBanner from '@/components/NotificationBanner'
 import { scheduleNotifications } from '@/lib/notifications'
 
@@ -13,6 +14,9 @@ export default function Home() {
   const [tab, setTab] = useState('despensa')
   const [showAdd, setShowAdd] = useState(false)
   const [editingProduct, setEditingProduct] = useState(null)
+  const [shoppingItems, setShoppingItems] = useState([])
+  const [loadingShoping, setLoadingShoping] = useState(false)
+  const [addingFromShopping, setAddingFromShopping] = useState(null)
   const [recipes, setRecipes] = useState([])
   const [loadingRecipes, setLoadingRecipes] = useState(false)
   const [toast, setToast] = useState(null)
@@ -21,6 +25,7 @@ export default function Home() {
 
   useEffect(() => {
     setProducts(getProducts())
+    setShoppingItems(getShoppingList())
   }, [])
 
   useEffect(() => {
@@ -47,6 +52,11 @@ export default function Home() {
     addProduct(product)
     refresh()
     showToast(`${product.emoji} ${product.name} agregado`)
+    if (addingFromShopping) {
+      removeShoppingItem(addingFromShopping.id)
+      setShoppingItems(prev => prev.filter(i => i.id !== addingFromShopping.id))
+      setAddingFromShopping(null)
+    }
   }
 
   function handleEdit(product) {
@@ -65,6 +75,50 @@ export default function Home() {
     setEditingProduct(null)
     refresh()
     showToast('Producto eliminado')
+  }
+
+  async function fetchShoppingList() {
+    setLoadingShoping(true)
+    try {
+      const enriched = products.map(p => ({ ...p, status: statusOf(daysLeft(p.expiry)) }))
+      const res = await fetch('/api/compras', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ products: enriched }),
+      })
+      const data = await res.json()
+      const items = (data.items || []).map(item => ({
+        ...item,
+        id: Date.now() + Math.random(),
+        done: false,
+      }))
+      setShoppingItems(items)
+      saveShoppingList(items)
+    } catch {
+      showToast('Error al generar la lista')
+    } finally {
+      setLoadingShoping(false)
+    }
+  }
+
+  function handleShoppingTab() {
+    setTab('compras')
+    if (shoppingItems.length === 0) fetchShoppingList()
+  }
+
+  function handleToggle(id) {
+    toggleShoppingItem(id)
+    setShoppingItems(prev => prev.map(i => i.id === id ? { ...i, done: !i.done } : i))
+  }
+
+  function handleAddToDispensa(item) {
+    setAddingFromShopping(item)
+  }
+
+  function handleClearDone() {
+    const filtered = shoppingItems.filter(i => !i.done)
+    setShoppingItems(filtered)
+    saveShoppingList(filtered)
   }
 
   function showToast(msg) {
@@ -144,6 +198,12 @@ export default function Home() {
             ${tab === 'recetas' ? 'border-[#C94A2E] text-[#1C1A16]' : 'border-transparent text-[#9C9488]'}`}>
           👨‍🍳 Recetas IA
         </button>
+        <button
+          onClick={handleShoppingTab}
+          className={`flex-1 py-3 text-[13px] font-medium border-b-2 transition-colors
+            ${tab === 'compras' ? 'border-[#C94A2E] text-[#1C1A16]' : 'border-transparent text-[#9C9488]'}`}>
+          🛒 Compras
+        </button>
       </div>
 
       {/* Content */}
@@ -193,6 +253,17 @@ export default function Home() {
           </>
         )}
 
+        {tab === 'compras' && (
+          <ShoppingList
+            items={shoppingItems}
+            loading={loadingShoping}
+            onToggle={handleToggle}
+            onAddToDispensa={handleAddToDispensa}
+            onRegenerate={fetchShoppingList}
+            onClearDone={handleClearDone}
+          />
+        )}
+
         {tab === 'recetas' && (
           <>
             {loadingRecipes && (
@@ -222,7 +293,14 @@ export default function Home() {
         +
       </button>
 
-      {showAdd && <AddPanel onAdd={handleAdd} onClose={() => setShowAdd(false)} />}
+      {(showAdd || addingFromShopping) && (
+        <AddPanel
+          onAdd={handleAdd}
+          onClose={() => { setShowAdd(false); setAddingFromShopping(null) }}
+          initialName={addingFromShopping?.name ?? ''}
+          initialEmoji={addingFromShopping?.emoji ?? ''}
+        />
+      )}
       {editingProduct && (
         <EditPanel
           product={editingProduct}
