@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { getProducts, addProduct, deleteProduct, daysLeft, statusOf } from '@/lib/storage'
 import ProductCard from '@/components/ProductCard'
 import RecipeCard from '@/components/RecipeCard'
@@ -12,9 +12,21 @@ export default function Home() {
   const [recipes, setRecipes] = useState([])
   const [loadingRecipes, setLoadingRecipes] = useState(false)
   const [toast, setToast] = useState(null)
+  const [tabTop, setTabTop] = useState(0)
+  const headerRef = useRef(null)
 
   useEffect(() => {
     setProducts(getProducts())
+  }, [])
+
+  useEffect(() => {
+    if (!headerRef.current) return
+    const observer = new ResizeObserver(() => {
+      setTabTop(headerRef.current.offsetHeight)
+    })
+    observer.observe(headerRef.current)
+    setTabTop(headerRef.current.offsetHeight)
+    return () => observer.disconnect()
   }, [])
 
   const refresh = useCallback(() => {
@@ -72,7 +84,7 @@ export default function Home() {
   return (
     <>
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-[#F5F2EC] border-b border-[#E3DED3] px-6 pt-12 pb-4">
+      <div ref={headerRef} className="sticky top-0 z-10 bg-[#F5F2EC] border-b border-[#E3DED3] px-6 pt-12 pb-4">
         <div className="flex justify-between items-start mb-4">
           <div>
             <h1 className="serif text-[26px] leading-none">
@@ -95,8 +107,10 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex border-b border-[#E3DED3] sticky top-[152px] z-10 bg-[#F5F2EC]">
+      {/* Tabs — top calculado dinámicamente según altura real del header */}
+      <div
+        className="flex border-b border-[#E3DED3] sticky z-10 bg-[#F5F2EC]"
+        style={{ top: tabTop }}>
         <button
           onClick={() => setTab('despensa')}
           className={`flex-1 py-3 text-[13px] font-medium border-b-2 transition-colors
@@ -113,7 +127,6 @@ export default function Home() {
 
       {/* Content */}
       <div className="px-6 pb-32 pt-5">
-
         {tab === 'despensa' && (
           <>
             {products.length === 0 && (
@@ -188,10 +201,8 @@ export default function Home() {
         +
       </button>
 
-      {/* Add panel */}
       {showAdd && <AddPanel onAdd={handleAdd} onClose={() => setShowAdd(false)} />}
 
-      {/* Toast */}
       {toast && (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-[#1C1A16] text-white text-[13px] font-medium px-5 py-3 rounded-full z-50 shadow-lg whitespace-nowrap">
           {toast}
