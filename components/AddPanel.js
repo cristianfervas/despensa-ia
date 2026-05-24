@@ -1,30 +1,18 @@
 'use client'
 import { useState } from 'react'
-import { today, lookupDuracion, esFrutaVerdura } from '@/lib/storage'
+import { today, lookupDuracion, esFrutaVerdura, getEmoji, EMOJI_CATEGORIES } from '@/lib/storage'
 import BarcodeScanner from './BarcodeScanner'
 
-const EMOJIS = ['🥩','🥛','🥚','🥬','🍎','🧀','🐟','🍞','🫙','🧄','🍋','🥕','🍅','🥦','🧅']
-
-// Opciones del selector manual — cubre todos los valores posibles del autocompletado
 const DURATION_OPTIONS = [
-  { value: 1,   label: '1 día' },
-  { value: 2,   label: '2 días' },
-  { value: 3,   label: '3 días' },
-  { value: 4,   label: '4 días' },
-  { value: 5,   label: '5 días' },
-  { value: 6,   label: '6 días' },
-  { value: 7,   label: '7 días' },
-  { value: 8,   label: '8 días' },
-  { value: 9,   label: '9 días' },
-  { value: 10,  label: '10 días' },
-  { value: 13,  label: '13 días' },
-  { value: 14,  label: '14 días' },
-  { value: 18,  label: '18 días' },
-  { value: 21,  label: '21 días' },
-  { value: 30,  label: '30 días' },
-  { value: 90,  label: '3 meses' },
-  { value: 180, label: '6 meses' },
-  { value: 365, label: '1 año' },
+  { value: 1,   label: '1 día' },  { value: 2,   label: '2 días' },
+  { value: 3,   label: '3 días' },  { value: 4,   label: '4 días' },
+  { value: 5,   label: '5 días' },  { value: 6,   label: '6 días' },
+  { value: 7,   label: '7 días' },  { value: 8,   label: '8 días' },
+  { value: 9,   label: '9 días' },  { value: 10,  label: '10 días' },
+  { value: 13,  label: '13 días' }, { value: 14,  label: '14 días' },
+  { value: 18,  label: '18 días' }, { value: 21,  label: '21 días' },
+  { value: 30,  label: '30 días' }, { value: 90,  label: '3 meses' },
+  { value: 180, label: '6 meses' }, { value: 365, label: '1 año' },
   { value: 730, label: '2 años' },
 ]
 
@@ -40,10 +28,15 @@ function applyMaturity(base, maturity) {
 }
 
 export default function AddPanel({ onAdd, onClose, initialName = '', initialEmoji = '' }) {
-  const initBase = initialName ? lookupDuracion(initialName) : null
+  const initBase    = initialName ? lookupDuracion(initialName) : null
+  const initEmoji   = initialEmoji || getEmoji(initialName) || '🥩'
+  const initHasSugg = !!(initialEmoji || getEmoji(initialName))
+
   const [method, setMethod] = useState('manual')
-  const [emoji, setEmoji] = useState(initialEmoji || '🥩')
   const [name, setName] = useState(initialName)
+  const [emoji, setEmoji] = useState(initEmoji)
+  const [showGrid, setShowGrid] = useState(!initHasSugg)
+  const [emojiPulsed, setEmojiPulsed] = useState(false)
   const [date, setDate] = useState(today())
   const [days, setDays] = useState(initBase ?? 3)
   const [autoBaseDays, setAutoBaseDays] = useState(initBase)
@@ -54,6 +47,13 @@ export default function AddPanel({ onAdd, onClose, initialName = '', initialEmoj
 
   function handleNameChange(value) {
     setName(value)
+    // Emoji auto-suggest
+    const suggested = getEmoji(value)
+    if (suggested) {
+      setEmoji(suggested)
+      setShowGrid(false)
+    }
+    // Duration auto-detect
     const base = lookupDuracion(value)
     setAutoBaseDays(base)
     if (base !== null) {
@@ -64,21 +64,20 @@ export default function AddPanel({ onAdd, onClose, initialName = '', initialEmoj
 
   function handleMaturityChange(newMaturity) {
     setMaturity(newMaturity)
-    if (autoBaseDays !== null) {
-      setDays(applyMaturity(autoBaseDays, newMaturity))
-    }
+    if (autoBaseDays !== null) setDays(applyMaturity(autoBaseDays, newMaturity))
+  }
+
+  function handleEmojiTap() {
+    setEmojiPulsed(true)
+    setTimeout(() => setEmojiPulsed(false), 180)
   }
 
   function handleSubmit() {
     if (!name.trim()) return alert('Escribe el nombre del producto')
     onAdd({ emoji, name: name.trim(), date, days: parseInt(days) })
-    setName('')
-    setEmoji('🥩')
-    setDate(today())
-    setDays(3)
-    setAutoBaseDays(null)
-    setMaturity('fresh')
-    setShowDurationSelect(false)
+    setName(''); setEmoji('🥩'); setShowGrid(true); setEmojiPulsed(false)
+    setDate(today()); setDays(3); setAutoBaseDays(null)
+    setMaturity('fresh'); setShowDurationSelect(false)
     onClose()
   }
 
@@ -95,10 +94,7 @@ export default function AddPanel({ onAdd, onClose, initialName = '', initialEmoj
         body: JSON.stringify({ image: base64, mimeType: file.type }),
       })
       const data = await res.json()
-      if (data.products?.length) {
-        data.products.forEach(p => onAdd(p))
-        onClose()
-      }
+      if (data.products?.length) { data.products.forEach(p => onAdd(p)); onClose() }
     } catch {
       alert('Error al leer la boleta. Intenta de nuevo.')
     } finally {
@@ -115,11 +111,11 @@ export default function AddPanel({ onAdd, onClose, initialName = '', initialEmoj
     })
   }
 
-  // Flags para el render del formulario manual
-  const hasAuto = autoBaseDays !== null
-  const showMaturity = hasAuto && !showDurationSelect && esFrutaVerdura(name)
-  const showAutoInfo = hasAuto && !showDurationSelect
-  const showSelect = !hasAuto || showDurationSelect
+  const hasAuto      = autoBaseDays !== null
+  const hasSuggestion = !!getEmoji(name)
+  const showMaturity  = hasAuto && !showDurationSelect && esFrutaVerdura(name)
+  const showAutoInfo  = hasAuto && !showDurationSelect
+  const showSelect    = !hasAuto || showDurationSelect
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end" onClick={e => e.target === e.currentTarget && onClose()}>
@@ -127,7 +123,7 @@ export default function AddPanel({ onAdd, onClose, initialName = '', initialEmoj
         <div className="w-10 h-1 bg-[#E3DED3] rounded mx-auto mb-5" />
         <h2 className="serif text-[22px] mb-5">Agregar producto</h2>
 
-        {/* Method tabs */}
+        {/* Tabs de método */}
         <div className="flex gap-2 mb-5">
           {[
             { id: 'manual',  icon: '✏️', label: 'Manual' },
@@ -147,19 +143,7 @@ export default function AddPanel({ onAdd, onClose, initialName = '', initialEmoj
         {/* Manual */}
         {method === 'manual' && (
           <div>
-            {/* Emoji picker */}
-            <div className="flex flex-wrap gap-2 mb-4">
-              {EMOJIS.map(e => (
-                <button key={e}
-                  onClick={() => setEmoji(e)}
-                  className={`w-11 h-11 rounded-xl text-xl flex items-center justify-center border-2 transition-all
-                    ${emoji === e ? 'border-[#C94A2E] bg-[#FAEAE6]' : 'border-[#E3DED3] bg-white'}`}>
-                  {e}
-                </button>
-              ))}
-            </div>
-
-            {/* Nombre */}
+            {/* 1 — Nombre */}
             <div className="mb-3">
               <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#9C9488] mb-1.5">Nombre</label>
               <input
@@ -171,7 +155,73 @@ export default function AddPanel({ onAdd, onClose, initialName = '', initialEmoj
               />
             </div>
 
-            {/* Selector de madurez — solo para frutas y verduras */}
+            {/* 2 — Ícono: sugerencia grande o grid de categorías */}
+            <div className="mb-3">
+              <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#9C9488] mb-1.5">Ícono</label>
+
+              {!showGrid ? (
+                /* Círculo de sugerencia */
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={handleEmojiTap}
+                    className={`w-16 h-16 rounded-2xl bg-[#F5F2EC] border-2 flex items-center justify-center text-4xl transition-all duration-150 select-none
+                      ${emojiPulsed ? 'scale-110 border-[#3A7D52]' : 'scale-100 border-[#E3DED3]'}`}>
+                    {emoji}
+                  </button>
+                  <div>
+                    <p className="text-[12px] text-[#6B6559] mb-1.5">
+                      {hasSuggestion ? 'Ícono sugerido' : 'Ícono seleccionado'}
+                    </p>
+                    <button
+                      onClick={() => setShowGrid(true)}
+                      className="text-[12px] text-[#C94A2E] font-semibold">
+                      Cambiar ícono
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Grid de categorías */
+                <div className="bg-white border border-[#E3DED3] rounded-2xl p-3">
+                  <div className="flex items-center justify-between mb-2.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-3xl leading-none">{emoji}</span>
+                      <span className="text-[11px] text-[#9C9488]">Seleccionado</span>
+                    </div>
+                    {hasSuggestion && (
+                      <button
+                        onClick={() => setShowGrid(false)}
+                        className="text-[12px] text-[#C94A2E] font-semibold">
+                        Cerrar
+                      </button>
+                    )}
+                  </div>
+                  <div className="max-h-52 overflow-y-auto">
+                    {EMOJI_CATEGORIES.map(cat => (
+                      <div key={cat.label} className="mb-3 last:mb-0">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-[#9C9488] mb-1.5">
+                          {cat.label}
+                        </p>
+                        <div className="grid grid-cols-6 gap-1">
+                          {cat.emojis.map(e => (
+                            <button
+                              key={e}
+                              onClick={() => { setEmoji(e); setShowGrid(false) }}
+                              className={`h-9 rounded-lg text-2xl flex items-center justify-center transition-all
+                                ${emoji === e
+                                  ? 'bg-[#FAEAE6] ring-2 ring-inset ring-[#C94A2E]'
+                                  : 'bg-[#F5F2EC] active:scale-90'}`}>
+                              {e}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 3 — Selector de madurez (solo frutas y verduras) */}
             {showMaturity && (
               <div className="mb-3">
                 <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#9C9488] mb-1.5">Estado</label>
@@ -189,7 +239,7 @@ export default function AddPanel({ onAdd, onClose, initialName = '', initialEmoj
               </div>
             )}
 
-            {/* Fecha de compra */}
+            {/* 4 — Fecha de compra */}
             <div className="mb-3">
               <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#9C9488] mb-1.5">Fecha de compra</label>
               <input
@@ -200,15 +250,13 @@ export default function AddPanel({ onAdd, onClose, initialName = '', initialEmoj
               />
             </div>
 
-            {/* Duración — info automática o selector manual */}
+            {/* 5 — Duración */}
             <div className="mb-5">
               <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#9C9488] mb-1.5">Duración estimada</label>
               {showAutoInfo ? (
                 <div className="flex items-center justify-between px-4 py-3 bg-white border border-[#E3DED3] rounded-xl">
                   <span className="text-[15px] text-[#1C1A16]">{days} {days === 1 ? 'día' : 'días'}</span>
-                  <button
-                    onClick={() => setShowDurationSelect(true)}
-                    className="text-[12px] text-[#C94A2E] font-semibold">
+                  <button onClick={() => setShowDurationSelect(true)} className="text-[12px] text-[#C94A2E] font-semibold">
                     Ajustar
                   </button>
                 </div>
