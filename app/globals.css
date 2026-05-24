@@ -1,26 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  --animate-slide-up: slide-up 0.3s ease;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  @keyframes slide-up {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+:root {
+  --bg: #F5F2EC;
+  --bg2: #EDE9E0;
+  --bg3: #E3DED3;
+  --ink: #1C1A16;
+  --ink2: #6B6559;
+  --ink3: #9C9488;
+  --red: #C94A2E;
+  --red-bg: #FAEAE6;
+  --amber: #C47B1A;
+  --amber-bg: #FBF2E2;
+  --green: #3A7D52;
+  --green-bg: #E5F3EC;
 }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  max-width: 430px;
+  margin: 0 auto;
+}
+
+.serif { font-family: 'DM Serif Display', serif; }
