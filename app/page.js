@@ -4,6 +4,8 @@ import { getProducts, addProduct, deleteProduct, daysLeft, statusOf } from '@/li
 import ProductCard from '@/components/ProductCard'
 import RecipeCard from '@/components/RecipeCard'
 import AddPanel from '@/components/AddPanel'
+import NotificationBanner from '@/components/NotificationBanner'
+import { scheduleNotifications } from '@/lib/notifications'
 
 export default function Home() {
   const [products, setProducts] = useState([])
@@ -18,6 +20,12 @@ export default function Home() {
   useEffect(() => {
     setProducts(getProducts())
   }, [])
+
+  useEffect(() => {
+    if (products.length > 0) {
+      scheduleNotifications(products)
+    }
+  }, [products])
 
   useEffect(() => {
     if (!headerRef.current) return
@@ -107,7 +115,10 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Tabs — top calculado dinámicamente según altura real del header */}
+      {/* Banner de notificaciones */}
+      <NotificationBanner products={products} />
+
+      {/* Tabs */}
       <div
         className="flex border-b border-[#E3DED3] sticky z-10 bg-[#F5F2EC]"
         style={{ top: tabTop }}>
