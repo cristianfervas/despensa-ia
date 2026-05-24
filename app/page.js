@@ -1,9 +1,10 @@
 'use client'
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { getProducts, addProduct, deleteProduct, daysLeft, statusOf } from '@/lib/storage'
+import { getProducts, addProduct, deleteProduct, updateProduct, daysLeft, statusOf } from '@/lib/storage'
 import ProductCard from '@/components/ProductCard'
 import RecipeCard from '@/components/RecipeCard'
 import AddPanel from '@/components/AddPanel'
+import EditPanel from '@/components/EditPanel'
 import NotificationBanner from '@/components/NotificationBanner'
 import { scheduleNotifications } from '@/lib/notifications'
 
@@ -11,6 +12,7 @@ export default function Home() {
   const [products, setProducts] = useState([])
   const [tab, setTab] = useState('despensa')
   const [showAdd, setShowAdd] = useState(false)
+  const [editingProduct, setEditingProduct] = useState(null)
   const [recipes, setRecipes] = useState([])
   const [loadingRecipes, setLoadingRecipes] = useState(false)
   const [toast, setToast] = useState(null)
@@ -47,14 +49,22 @@ export default function Home() {
     showToast(`${product.emoji} ${product.name} agregado`)
   }
 
+  function handleEdit(product) {
+    setEditingProduct(product)
+  }
+
+  function handleUpdate(id, changes) {
+    updateProduct(id, changes)
+    setEditingProduct(null)
+    refresh()
+    showToast('Producto actualizado')
+  }
+
   function handleDelete(id) {
-    const p = products.find(x => x.id === id)
-    if (!p) return
-    if (confirm(`¿Eliminar ${p.name}?`)) {
-      deleteProduct(id)
-      refresh()
-      showToast('Producto eliminado')
-    }
+    deleteProduct(id)
+    setEditingProduct(null)
+    refresh()
+    showToast('Producto eliminado')
   }
 
   function showToast(msg) {
@@ -154,7 +164,7 @@ export default function Home() {
                   <div className="flex-1 h-px bg-[#E3DED3]" />
                 </div>
                 {urgent.sort((a,b) => daysLeft(a.expiry) - daysLeft(b.expiry)).map(p => (
-                  <ProductCard key={p.id} product={p} onDelete={handleDelete} />
+                  <ProductCard key={p.id} product={p} onEdit={handleEdit} />
                 ))}
               </>
             )}
@@ -165,7 +175,7 @@ export default function Home() {
                   <div className="flex-1 h-px bg-[#E3DED3]" />
                 </div>
                 {warn.sort((a,b) => daysLeft(a.expiry) - daysLeft(b.expiry)).map(p => (
-                  <ProductCard key={p.id} product={p} onDelete={handleDelete} />
+                  <ProductCard key={p.id} product={p} onEdit={handleEdit} />
                 ))}
               </>
             )}
@@ -176,7 +186,7 @@ export default function Home() {
                   <div className="flex-1 h-px bg-[#E3DED3]" />
                 </div>
                 {ok.sort((a,b) => daysLeft(a.expiry) - daysLeft(b.expiry)).map(p => (
-                  <ProductCard key={p.id} product={p} onDelete={handleDelete} />
+                  <ProductCard key={p.id} product={p} onEdit={handleEdit} />
                 ))}
               </>
             )}
@@ -213,6 +223,14 @@ export default function Home() {
       </button>
 
       {showAdd && <AddPanel onAdd={handleAdd} onClose={() => setShowAdd(false)} />}
+      {editingProduct && (
+        <EditPanel
+          product={editingProduct}
+          onSave={handleUpdate}
+          onDelete={handleDelete}
+          onClose={() => setEditingProduct(null)}
+        />
+      )}
 
       {toast && (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-[#1C1A16] text-white text-[13px] font-medium px-5 py-3 rounded-full z-50 shadow-lg whitespace-nowrap">

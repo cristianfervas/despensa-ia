@@ -1,7 +1,7 @@
 'use client'
 import { daysLeft, statusOf, badgeLabel, formatDate } from '@/lib/storage'
 
-export default function ProductCard({ product, onDelete }) {
+export default function ProductCard({ product, onEdit }) {
   const dl = daysLeft(product.expiry)
   const status = statusOf(dl)
   const label = badgeLabel(dl)
@@ -14,7 +14,7 @@ export default function ProductCard({ product, onDelete }) {
 
   return (
     <div className={`bg-white rounded-2xl p-4 mb-2 flex items-center gap-3 border border-[#E3DED3] border-l-4 ${colors[status].border} active:scale-[0.98] transition-transform cursor-pointer`}
-      onClick={() => onDelete && onDelete(product.id)}>
+      onClick={() => onEdit && onEdit(product)}>
       <div className="w-12 h-12 rounded-xl bg-[#F5F2EC] flex items-center justify-center text-2xl flex-shrink-0">
         {product.emoji}
       </div>
