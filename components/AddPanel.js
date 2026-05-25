@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { today, lookupDuracion, esFrutaVerdura, getEmoji, EMOJI_CATEGORIES } from '@/lib/storage'
+import { today, lookupDuracion, esFrutaVerdura, getEmoji, getQuantityType, EMOJI_CATEGORIES } from '@/lib/storage'
 import BarcodeScanner from './BarcodeScanner'
 
 const DURATION_OPTIONS = [
@@ -28,9 +28,10 @@ function applyMaturity(base, maturity) {
 }
 
 export default function AddPanel({ onAdd, onClose, initialName = '', initialEmoji = '' }) {
-  const initBase    = initialName ? lookupDuracion(initialName) : null
-  const initEmoji   = initialEmoji || getEmoji(initialName) || '🥩'
-  const initHasSugg = !!(initialEmoji || getEmoji(initialName))
+  const initBase        = initialName ? lookupDuracion(initialName) : null
+  const initEmoji       = initialEmoji || getEmoji(initialName) || '🥩'
+  const initHasSugg     = !!(initialEmoji || getEmoji(initialName))
+  const initQtyType     = initialName ? getQuantityType(initialName) : 'unit'
 
   const [method, setMethod] = useState('manual')
   const [name, setName] = useState(initialName)
@@ -44,6 +45,9 @@ export default function AddPanel({ onAdd, onClose, initialName = '', initialEmoj
   const [showDurationSelect, setShowDurationSelect] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [preview, setPreview] = useState(null)
+  const [quantityType, setQuantityType] = useState(initQtyType)
+  const [quantity, setQuantity] = useState(initQtyType === 'weight' ? 500 : 1)
+  const [quantityUnit, setQuantityUnit] = useState('g')
 
   function handleNameChange(value) {
     setName(value)
@@ -60,6 +64,13 @@ export default function AddPanel({ onAdd, onClose, initialName = '', initialEmoj
       setDays(applyMaturity(base, maturity))
       setShowDurationSelect(false)
     }
+    // Quantity type auto-detect
+    const newQtyType = getQuantityType(value)
+    if (newQtyType !== quantityType) {
+      setQuantityType(newQtyType)
+      setQuantity(newQtyType === 'weight' ? 500 : 1)
+      setQuantityUnit('g')
+    }
   }
 
   function handleMaturityChange(newMaturity) {
@@ -74,10 +85,14 @@ export default function AddPanel({ onAdd, onClose, initialName = '', initialEmoj
 
   function handleSubmit() {
     if (!name.trim()) return alert('Escribe el nombre del producto')
-    onAdd({ emoji, name: name.trim(), date, days: parseInt(days) })
+    onAdd({
+      emoji, name: name.trim(), date, days: parseInt(days),
+      quantityType, quantity, quantityUnit: quantityType === 'unit' ? 'u' : quantityUnit,
+    })
     setName(''); setEmoji('🥩'); setShowGrid(true); setEmojiPulsed(false)
     setDate(today()); setDays(3); setAutoBaseDays(null)
     setMaturity('fresh'); setShowDurationSelect(false)
+    setQuantityType('unit'); setQuantity(1); setQuantityUnit('g')
     onClose()
   }
 
@@ -239,7 +254,60 @@ export default function AddPanel({ onAdd, onClose, initialName = '', initialEmoj
               </div>
             )}
 
-            {/* 4 — Fecha de compra */}
+            {/* 4 — Cantidad */}
+            <div className="mb-3">
+              <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#9C9488] mb-1.5">Cantidad</label>
+              {quantityType === 'unit' ? (
+                <div className="flex items-center gap-2 h-11">
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                    className="w-10 h-10 rounded-xl bg-white border border-[#E3DED3] flex items-center justify-center text-[18px] font-medium text-[#1C1A16] active:scale-95 transition-transform select-none">
+                    −
+                  </button>
+                  <div className="min-w-[80px] h-10 flex items-center justify-center bg-white border border-[#E3DED3] rounded-xl text-[14px] font-medium text-[#1C1A16] px-2">
+                    {quantity} {quantity === 1 ? 'unidad' : 'unidades'}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(q => Math.min(99, q + 1))}
+                    className="w-10 h-10 rounded-xl bg-white border border-[#E3DED3] flex items-center justify-center text-[18px] font-medium text-[#1C1A16] active:scale-95 transition-transform select-none">
+                    +
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min={quantityUnit === 'g' ? 1 : 0.001}
+                    step={quantityUnit === 'g' ? 1 : 0.001}
+                    inputMode="decimal"
+                    className="flex-1 px-4 py-3 bg-white border border-[#E3DED3] rounded-xl text-[15px] outline-none focus:border-[#C94A2E]"
+                    value={quantity}
+                    onChange={e => {
+                      const val = parseFloat(e.target.value)
+                      if (!isNaN(val) && val > 0) setQuantity(val)
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (quantityUnit === 'g') {
+                        setQuantityUnit('kg')
+                        setQuantity(q => parseFloat((q / 1000).toFixed(3)))
+                      } else {
+                        setQuantityUnit('g')
+                        setQuantity(q => Math.round(q * 1000))
+                      }
+                    }}
+                    className="px-4 py-3 bg-white border border-[#E3DED3] rounded-xl text-[14px] font-semibold text-[#1C1A16] min-w-[56px] text-center active:scale-95 transition-transform">
+                    {quantityUnit}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* 5 — Fecha de compra */}
             <div className="mb-3">
               <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#9C9488] mb-1.5">Fecha de compra</label>
               <input
@@ -250,7 +318,7 @@ export default function AddPanel({ onAdd, onClose, initialName = '', initialEmoj
               />
             </div>
 
-            {/* 5 — Duración */}
+            {/* 6 — Duración */}
             <div className="mb-5">
               <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#9C9488] mb-1.5">Duración estimada</label>
               {showAutoInfo ? (

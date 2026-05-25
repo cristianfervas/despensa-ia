@@ -1,10 +1,11 @@
 'use client'
-import { daysLeft, statusOf, badgeLabel, formatDate } from '@/lib/storage'
+import { daysLeft, statusOf, badgeLabel, formatDate, formatQuantity } from '@/lib/storage'
 
 export default function ProductCard({ product, onEdit }) {
   const dl = daysLeft(product.expiry)
   const status = statusOf(dl)
   const label = badgeLabel(dl)
+  const qty = formatQuantity(product)
 
   const colors = {
     urgent: { border: 'border-l-[#C94A2E]', badge: 'bg-[#FAEAE6] text-[#C94A2E]' },
@@ -21,7 +22,7 @@ export default function ProductCard({ product, onEdit }) {
       <div className="flex-1 min-w-0">
         <div className="text-[15px] font-medium truncate">{product.name}</div>
         <div className="text-[12px] text-[#9C9488] mt-0.5">
-          Comprado {formatDate(product.date)} · {product.days}d duración
+          Comprado {formatDate(product.date)}{qty ? ` · ${qty}` : ''} · {product.days}d duración
         </div>
       </div>
       <span className={`text-[11px] font-semibold px-3 py-1 rounded-full flex-shrink-0 ${colors[status].badge}`}>

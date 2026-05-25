@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { lookupDuracion, esFrutaVerdura } from '@/lib/storage'
+import { lookupDuracion, esFrutaVerdura, getQuantityType } from '@/lib/storage'
 
 const EMOJIS = ['🥩','🥛','🥚','🥬','🍎','🧀','🐟','🍞','🫙','🧄','🍋','🥕','🍅','🥦','🧅']
 
@@ -33,6 +33,11 @@ export default function EditPanel({ product, onSave, onDelete, onClose }) {
   const initialBase = lookupDuracion(product.name)
   const matchesCurrent = initialBase !== null && initialBase === product.days
 
+  // Estado inicial de cantidad (compatible con productos sin estos campos)
+  const initQtyType = product.quantityType ?? getQuantityType(product.name)
+  const initQuantity = product.quantity ?? (initQtyType === 'weight' ? 500 : 1)
+  const initQtyUnit = product.quantityUnit === 'kg' ? 'kg' : 'g'
+
   const [emoji, setEmoji] = useState(product.emoji)
   const [name, setName] = useState(product.name)
   const [date, setDate] = useState(product.date)
@@ -40,6 +45,9 @@ export default function EditPanel({ product, onSave, onDelete, onClose }) {
   const [autoBaseDays, setAutoBaseDays] = useState(matchesCurrent ? initialBase : null)
   const [maturity, setMaturity] = useState('fresh')
   const [showDurationSelect, setShowDurationSelect] = useState(!matchesCurrent)
+  const [quantityType, setQuantityType] = useState(initQtyType)
+  const [quantity, setQuantity] = useState(initQuantity)
+  const [quantityUnit, setQuantityUnit] = useState(initQtyUnit)
 
   function handleNameChange(value) {
     setName(value)
@@ -51,6 +59,13 @@ export default function EditPanel({ product, onSave, onDelete, onClose }) {
     } else {
       setShowDurationSelect(true)
     }
+    // Quantity type auto-detect al cambiar nombre
+    const newQtyType = getQuantityType(value)
+    if (newQtyType !== quantityType) {
+      setQuantityType(newQtyType)
+      setQuantity(newQtyType === 'weight' ? 500 : 1)
+      setQuantityUnit('g')
+    }
   }
 
   function handleMaturityChange(newMaturity) {
@@ -60,7 +75,10 @@ export default function EditPanel({ product, onSave, onDelete, onClose }) {
 
   function handleSave() {
     if (!name.trim()) return alert('El nombre no puede estar vacío')
-    onSave(product.id, { emoji, name: name.trim(), date, days: parseInt(days) })
+    onSave(product.id, {
+      emoji, name: name.trim(), date, days: parseInt(days),
+      quantityType, quantity, quantityUnit: quantityType === 'unit' ? 'u' : quantityUnit,
+    })
   }
 
   function handleDeleteClick() {
@@ -121,6 +139,59 @@ export default function EditPanel({ product, onSave, onDelete, onClose }) {
             </div>
           </div>
         )}
+
+        {/* Cantidad */}
+        <div className="mb-3">
+          <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#9C9488] mb-1.5">Cantidad restante</label>
+          {quantityType === 'unit' ? (
+            <div className="flex items-center gap-2 h-11">
+              <button
+                type="button"
+                onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                className="w-10 h-10 rounded-xl bg-white border border-[#E3DED3] flex items-center justify-center text-[18px] font-medium text-[#1C1A16] active:scale-95 transition-transform select-none">
+                −
+              </button>
+              <div className="min-w-[80px] h-10 flex items-center justify-center bg-white border border-[#E3DED3] rounded-xl text-[14px] font-medium text-[#1C1A16] px-2">
+                {quantity} {quantity === 1 ? 'unidad' : 'unidades'}
+              </div>
+              <button
+                type="button"
+                onClick={() => setQuantity(q => Math.min(99, q + 1))}
+                className="w-10 h-10 rounded-xl bg-white border border-[#E3DED3] flex items-center justify-center text-[18px] font-medium text-[#1C1A16] active:scale-95 transition-transform select-none">
+                +
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min={quantityUnit === 'g' ? 1 : 0.001}
+                step={quantityUnit === 'g' ? 1 : 0.001}
+                inputMode="decimal"
+                className="flex-1 px-4 py-3 bg-white border border-[#E3DED3] rounded-xl text-[15px] outline-none focus:border-[#C94A2E]"
+                value={quantity}
+                onChange={e => {
+                  const val = parseFloat(e.target.value)
+                  if (!isNaN(val) && val > 0) setQuantity(val)
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (quantityUnit === 'g') {
+                    setQuantityUnit('kg')
+                    setQuantity(q => parseFloat((q / 1000).toFixed(3)))
+                  } else {
+                    setQuantityUnit('g')
+                    setQuantity(q => Math.round(q * 1000))
+                  }
+                }}
+                className="px-4 py-3 bg-white border border-[#E3DED3] rounded-xl text-[14px] font-semibold text-[#1C1A16] min-w-[56px] text-center active:scale-95 transition-transform">
+                {quantityUnit}
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Fecha de compra */}
         <div className="mb-3">
