@@ -12,24 +12,12 @@ export default function ProductCard({ product, onEdit }) {
     ok:     '#3A7D52',
   }
 
-  let dayNumber, dayLabel
-  if (dl < 0) {
-    dayNumber = 'venció'
-    dayLabel = ''
-  } else if (dl === 0) {
-    dayNumber = 'hoy'
-    dayLabel = ''
-  } else {
-    dayNumber = dl
-    dayLabel = 'días'
-  }
-
-  const dayColor = dl < 0 ? '#C94A2E' : colors[status]
+  const dayColor = colors[status]
 
   return (
-    <div className="bg-white rounded-2xl p-4 mb-2.5 mx-1 flex items-center gap-3 border border-[#EDE9E0] shadow-sm active:scale-[0.98] transition-transform cursor-pointer"
+    <div className="bg-white rounded-2xl p-4 mb-2.5 mx-1 flex items-center gap-3 border border-[#E8E4DA] shadow-[0_1px_3px_rgba(0,0,0,0.06)] active:scale-[0.98] transition-transform cursor-pointer"
       onClick={() => onEdit && onEdit(product)}>
-      <div className="w-12 h-12 rounded-xl bg-[#F5F2EC] flex items-center justify-center text-2xl flex-shrink-0">
+      <div className="w-12 h-12 rounded-xl bg-[#EDE9E0] flex items-center justify-center text-2xl flex-shrink-0">
         {product.emoji}
       </div>
       <div className="flex-1 min-w-0">
@@ -38,14 +26,25 @@ export default function ProductCard({ product, onEdit }) {
           Comprado {formatDate(product.date)}{qty ? ` · ${qty}` : ''} · {product.days}d duración
         </div>
       </div>
-      <div className="flex-shrink-0 text-center leading-none" style={{ minWidth: 36 }}>
-        <div className="serif font-bold" style={{ fontSize: 22, color: dayColor }}>
-          {dayNumber}
+      {dl < 0 ? (
+        <div className="flex flex-col items-end flex-shrink-0">
+          <span className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-[#FAEAE6] text-[#C94A2E]">
+            venció
+          </span>
+          <span className="text-[10px] text-[#9C9488] mt-0.5">
+            hace {Math.abs(dl)}d
+          </span>
         </div>
-        {dayLabel && (
-          <div className="text-[8px] uppercase tracking-wider text-[#9C9488] mt-0.5">{dayLabel}</div>
-        )}
-      </div>
+      ) : (
+        <div className="flex-shrink-0 text-center leading-none" style={{ minWidth: 36 }}>
+          <div className="serif font-bold" style={{ fontSize: 22, color: dayColor }}>
+            {dl === 0 ? 'hoy' : dl}
+          </div>
+          {dl > 0 && (
+            <div className="text-[8px] uppercase tracking-wider text-[#9C9488] mt-0.5">días</div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

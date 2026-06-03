@@ -11,7 +11,7 @@
 }
 
 :root {
-  --bg: #F5F2EC;
+  --bg: #EDE9E0;
   --bg2: #EDE9E0;
   --bg3: #E3DED3;
   --ink: #1C1A16;
@@ -45,5 +45,5 @@ html {
 /* Evitar que el modo oscuro del sistema sobreescriba los colores */
 @media (prefers-color-scheme: dark) {
   html { color-scheme: light; }
-  body { background: var(--bg) !important; color: var(--ink) !important; }
+  body { background: #EDE9E0 !important; color: var(--ink) !important; }
 }

@@ -57,7 +57,7 @@ export default function ShoppingList({ items, loading, onToggle, onAddToDispensa
         return (
           <div
             key={item.id}
-            className={`bg-white rounded-2xl p-4 mb-2 border border-[#E3DED3] transition-opacity ${item.done ? 'opacity-50' : ''}`}>
+            className={`bg-white rounded-2xl p-4 mb-2.5 mx-1 border border-[#E8E4DA] shadow-[0_1px_3px_rgba(0,0,0,0.06)] transition-opacity ${item.done ? 'opacity-50' : ''}`}>
             <div className="flex items-center gap-3">
               {/* Checkbox custom */}
               <button
