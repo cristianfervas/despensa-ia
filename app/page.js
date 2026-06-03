@@ -144,7 +144,7 @@ export default function Home() {
   return (
     <>
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-[#F5F2EC] border-b border-[#EDE9E0] px-6 pt-10 pb-4">
+      <div className="sticky top-0 z-20 bg-[#F5F2EC] border-b border-[#EDE9E0] px-5 pt-10 pb-4">
         <div className="flex justify-between items-center mb-4">
           <h1 className="serif text-[26px] leading-none">
             Des<span className="text-[#C94A2E] italic">pensa</span>
