@@ -1,6 +1,6 @@
 'use client'
-import { useState } from 'react'
-import { today, lookupDuracion, esFrutaVerdura, getEmoji, getQuantityType, EMOJI_CATEGORIES } from '@/lib/storage'
+import { useState, useEffect } from 'react'
+import { today, getDuration, esFrutaVerdura, getEmoji, getQuantityType, EMOJI_CATEGORIES } from '@/lib/storage'
 import BarcodeScanner from './BarcodeScanner'
 
 const DURATION_OPTIONS = [
@@ -28,7 +28,7 @@ function applyMaturity(base, maturity) {
 }
 
 export default function AddPanel({ onAdd, onClose, initialName = '', initialEmoji = '' }) {
-  const initBase        = initialName ? lookupDuracion(initialName) : null
+  const initBase        = initialName ? (getDuration(initialName) ?? null) : null
   const initEmoji       = initialEmoji || getEmoji(initialName) || '🥩'
   const initHasSugg     = !!(initialEmoji || getEmoji(initialName))
   const initQtyType     = initialName ? getQuantityType(initialName) : 'unit'
@@ -42,12 +42,49 @@ export default function AddPanel({ onAdd, onClose, initialName = '', initialEmoj
   const [days, setDays] = useState(initBase ?? 3)
   const [autoBaseDays, setAutoBaseDays] = useState(initBase)
   const [maturity, setMaturity] = useState('fresh')
+  // 'idle' | 'detected' | 'loading' | 'ai'
+  const [durationState, setDurationState] = useState(initBase !== null ? 'detected' : 'idle')
   const [showDurationSelect, setShowDurationSelect] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [preview, setPreview] = useState(null)
   const [quantityType, setQuantityType] = useState(initQtyType)
   const [quantity, setQuantity] = useState(initQtyType === 'weight' ? 500 : 1)
   const [quantityUnit, setQuantityUnit] = useState('g')
+
+  // Debounced duration lookup: table first, AI fallback
+  useEffect(() => {
+    if (!name.trim()) {
+      setDurationState('idle')
+      return
+    }
+    const tableResult = getDuration(name)
+    if (tableResult !== undefined) {
+      setAutoBaseDays(tableResult)
+      setDays(applyMaturity(tableResult, maturity))
+      setDurationState('detected')
+      setShowDurationSelect(false)
+      return
+    }
+    setDurationState('loading')
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch('/api/duracion', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: name.trim() }),
+        })
+        const data = await res.json()
+        setAutoBaseDays(data.days)
+        setDays(applyMaturity(data.days, maturity))
+        setDurationState('ai')
+      } catch {
+        setDurationState('idle')
+      }
+    }, 600)
+    return () => clearTimeout(timer)
+  // maturity intentionally excluded: name changes drive this effect, maturity changes use handleMaturityChange
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name])
 
   function handleNameChange(value) {
     setName(value)
@@ -56,13 +93,6 @@ export default function AddPanel({ onAdd, onClose, initialName = '', initialEmoj
     if (suggested) {
       setEmoji(suggested)
       setShowGrid(false)
-    }
-    // Duration auto-detect
-    const base = lookupDuracion(value)
-    setAutoBaseDays(base)
-    if (base !== null) {
-      setDays(applyMaturity(base, maturity))
-      setShowDurationSelect(false)
     }
     // Quantity type auto-detect
     const newQtyType = getQuantityType(value)
@@ -75,7 +105,7 @@ export default function AddPanel({ onAdd, onClose, initialName = '', initialEmoj
 
   function handleMaturityChange(newMaturity) {
     setMaturity(newMaturity)
-    if (autoBaseDays !== null) setDays(applyMaturity(autoBaseDays, newMaturity))
+    if (autoBaseDays != null) setDays(applyMaturity(autoBaseDays, newMaturity))
   }
 
   function handleEmojiTap() {
@@ -91,7 +121,7 @@ export default function AddPanel({ onAdd, onClose, initialName = '', initialEmoj
     })
     setName(''); setEmoji('🥩'); setShowGrid(true); setEmojiPulsed(false)
     setDate(today()); setDays(3); setAutoBaseDays(null)
-    setMaturity('fresh'); setShowDurationSelect(false)
+    setMaturity('fresh'); setDurationState('idle'); setShowDurationSelect(false)
     setQuantityType('unit'); setQuantity(1); setQuantityUnit('g')
     onClose()
   }
@@ -126,11 +156,9 @@ export default function AddPanel({ onAdd, onClose, initialName = '', initialEmoj
     })
   }
 
-  const hasAuto      = autoBaseDays !== null
   const hasSuggestion = !!getEmoji(name)
+  const hasAuto       = durationState === 'detected' || durationState === 'ai'
   const showMaturity  = hasAuto && !showDurationSelect && esFrutaVerdura(name)
-  const showAutoInfo  = hasAuto && !showDurationSelect
-  const showSelect    = !hasAuto || showDurationSelect
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end" onClick={e => e.target === e.currentTarget && onClose()}>
@@ -236,7 +264,7 @@ export default function AddPanel({ onAdd, onClose, initialName = '', initialEmoj
               )}
             </div>
 
-            {/* 3 — Selector de madurez (solo frutas y verduras) */}
+            {/* 3 — Selector de madurez (solo frutas y verduras con duración detectada) */}
             {showMaturity && (
               <div className="mb-3">
                 <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#9C9488] mb-1.5">Estado</label>
@@ -321,14 +349,8 @@ export default function AddPanel({ onAdd, onClose, initialName = '', initialEmoj
             {/* 6 — Duración */}
             <div className="mb-5">
               <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#9C9488] mb-1.5">Duración estimada</label>
-              {showAutoInfo ? (
-                <div className="flex items-center justify-between px-4 py-3 bg-white border border-[#E3DED3] rounded-xl">
-                  <span className="text-[15px] text-[#1C1A16]">{days} {days === 1 ? 'día' : 'días'}</span>
-                  <button onClick={() => setShowDurationSelect(true)} className="text-[12px] text-[#C94A2E] font-semibold">
-                    Ajustar
-                  </button>
-                </div>
-              ) : (
+
+              {showDurationSelect || durationState === 'idle' ? (
                 <select
                   className="w-full px-4 py-3 bg-white border border-[#E3DED3] rounded-xl text-[15px] outline-none focus:border-[#C94A2E]"
                   value={days}
@@ -337,6 +359,27 @@ export default function AddPanel({ onAdd, onClose, initialName = '', initialEmoj
                     <option key={o.value} value={o.value}>{o.label}</option>
                   ))}
                 </select>
+              ) : durationState === 'loading' ? (
+                <div className="flex items-center gap-2 px-4 py-3 bg-white border border-[#E3DED3] rounded-xl">
+                  <span className="inline-block animate-spin text-base leading-none">⏳</span>
+                  <span className="text-[13px] text-[#9C9488]">Consultando duración...</span>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between px-4 py-3 bg-white border border-[#E3DED3] rounded-xl">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[15px] text-[#1C1A16]">{days} {days === 1 ? 'día' : 'días'}</span>
+                    {durationState === 'detected' ? (
+                      <span className="text-[#3A7D52] font-bold">✓</span>
+                    ) : (
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#FAEAE6] text-[#C94A2E]">✨ IA</span>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setShowDurationSelect(true)}
+                    className="text-[12px] text-[#C94A2E] font-semibold">
+                    Ajustar
+                  </button>
+                </div>
               )}
             </div>
 
