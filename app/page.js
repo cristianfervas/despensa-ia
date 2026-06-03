@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { getProducts, addProduct, deleteProduct, updateProduct, daysLeft, statusOf, getShoppingList, saveShoppingList, toggleShoppingItem, removeShoppingItem } from '@/lib/storage'
 import ProductCard from '@/components/ProductCard'
 import RecipeCard from '@/components/RecipeCard'
@@ -20,8 +20,6 @@ export default function Home() {
   const [recipes, setRecipes] = useState([])
   const [loadingRecipes, setLoadingRecipes] = useState(false)
   const [toast, setToast] = useState(null)
-  const [tabTop, setTabTop] = useState(0)
-  const headerRef = useRef(null)
 
   useEffect(() => {
     setProducts(getProducts())
@@ -33,16 +31,6 @@ export default function Home() {
       scheduleNotifications(products)
     }
   }, [products])
-
-  useEffect(() => {
-    if (!headerRef.current) return
-    const observer = new ResizeObserver(() => {
-      setTabTop(headerRef.current.offsetHeight)
-    })
-    observer.observe(headerRef.current)
-    setTabTop(headerRef.current.offsetHeight)
-    return () => observer.disconnect()
-  }, [])
 
   const refresh = useCallback(() => {
     setProducts(getProducts())
@@ -156,13 +144,13 @@ export default function Home() {
   return (
     <>
       {/* Header */}
-      <div ref={headerRef} className="sticky top-0 z-10 bg-[#F5F2EC] border-b border-[#E3DED3] px-6 pt-12 pb-4">
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <h1 className="serif text-[26px] leading-none">
-              Des<span className="text-[#C94A2E] italic">pensa</span>
-            </h1>
-            <p className="text-[11px] uppercase tracking-widest text-[#9C9488] mt-1">Tu cocina inteligente</p>
+      <div className="sticky top-0 z-20 bg-[#F5F2EC] border-b border-[#EDE9E0] px-6 pt-10 pb-4">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="serif text-[26px] leading-none">
+            Des<span className="text-[#C94A2E] italic">pensa</span>
+          </h1>
+          <div className="w-8 h-8 rounded-full bg-[#1C1A16] text-white flex items-center justify-center text-[13px] font-medium">
+            C
           </div>
         </div>
         <div className="flex gap-2">
@@ -182,32 +170,8 @@ export default function Home() {
       {/* Banner de notificaciones */}
       <NotificationBanner products={products} />
 
-      {/* Tabs */}
-      <div
-        className="flex border-b border-[#E3DED3] sticky z-10 bg-[#F5F2EC]"
-        style={{ top: tabTop }}>
-        <button
-          onClick={() => setTab('despensa')}
-          className={`flex-1 py-3 text-[13px] font-medium border-b-2 transition-colors
-            ${tab === 'despensa' ? 'border-[#C94A2E] text-[#1C1A16]' : 'border-transparent text-[#9C9488]'}`}>
-          🥡 Despensa
-        </button>
-        <button
-          onClick={fetchRecipes}
-          className={`flex-1 py-3 text-[13px] font-medium border-b-2 transition-colors
-            ${tab === 'recetas' ? 'border-[#C94A2E] text-[#1C1A16]' : 'border-transparent text-[#9C9488]'}`}>
-          👨‍🍳 Recetas IA
-        </button>
-        <button
-          onClick={handleShoppingTab}
-          className={`flex-1 py-3 text-[13px] font-medium border-b-2 transition-colors
-            ${tab === 'compras' ? 'border-[#C94A2E] text-[#1C1A16]' : 'border-transparent text-[#9C9488]'}`}>
-          🛒 Compras
-        </button>
-      </div>
-
       {/* Content */}
-      <div className="px-6 pb-32 pt-5">
+      <div className="px-6 pb-[100px] pt-5">
         {tab === 'despensa' && (
           <>
             {products.length === 0 && (
@@ -219,9 +183,8 @@ export default function Home() {
             )}
             {urgent.length > 0 && (
               <>
-                <div className="flex items-center gap-2 mb-2 mt-2">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#9C9488]">🔴 Usar hoy</span>
-                  <div className="flex-1 h-px bg-[#E3DED3]" />
+                <div className="inline-flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full mb-3 mt-2 bg-[#FAEAE6] text-[#C94A2E]">
+                  🔴 Usar hoy
                 </div>
                 {urgent.sort((a,b) => daysLeft(a.expiry) - daysLeft(b.expiry)).map(p => (
                   <ProductCard key={p.id} product={p} onEdit={handleEdit} />
@@ -230,9 +193,8 @@ export default function Home() {
             )}
             {warn.length > 0 && (
               <>
-                <div className="flex items-center gap-2 mb-2 mt-4">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#9C9488]">🟡 Usar pronto</span>
-                  <div className="flex-1 h-px bg-[#E3DED3]" />
+                <div className="inline-flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full mb-3 mt-2 bg-[#FBF2E2] text-[#C47B1A]">
+                  🟡 Usar pronto
                 </div>
                 {warn.sort((a,b) => daysLeft(a.expiry) - daysLeft(b.expiry)).map(p => (
                   <ProductCard key={p.id} product={p} onEdit={handleEdit} />
@@ -241,9 +203,8 @@ export default function Home() {
             )}
             {ok.length > 0 && (
               <>
-                <div className="flex items-center gap-2 mb-2 mt-4">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#9C9488]">🟢 Todo bien</span>
-                  <div className="flex-1 h-px bg-[#E3DED3]" />
+                <div className="inline-flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full mb-3 mt-2 bg-[#E5F3EC] text-[#3A7D52]">
+                  🟢 Todo bien
                 </div>
                 {ok.sort((a,b) => daysLeft(a.expiry) - daysLeft(b.expiry)).map(p => (
                   <ProductCard key={p.id} product={p} onEdit={handleEdit} />
@@ -289,9 +250,38 @@ export default function Home() {
       {/* FAB */}
       <button
         onClick={() => setShowAdd(true)}
-        className="fixed bottom-7 right-6 w-14 h-14 bg-[#1C1A16] text-white rounded-full text-2xl shadow-lg flex items-center justify-center z-40 active:scale-90 transition-transform">
+        className="fixed bottom-24 right-5 bg-[#C94A2E] text-white px-5 py-3 rounded-2xl text-[22px] font-light shadow-lg z-40 active:scale-95 transition-transform flex items-center justify-center w-14 h-14">
         +
       </button>
+
+      {/* Bottom nav */}
+      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white border-t border-[#EDE9E0] z-40 flex"
+        style={{ padding: '8px 0 20px' }}>
+        {[
+          { key: 'despensa', emoji: '🥡', label: 'Despensa', onClick: () => setTab('despensa') },
+          { key: 'recetas',  emoji: '👨‍🍳', label: 'Recetas',  onClick: fetchRecipes },
+          { key: 'compras',  emoji: '🛒', label: 'Compras',  onClick: handleShoppingTab },
+        ].map(item => {
+          const active = tab === item.key
+          return (
+            <button
+              key={item.key}
+              onClick={item.onClick}
+              className="flex-1 flex flex-col items-center gap-1">
+              <span
+                className="flex items-center justify-center text-[18px]"
+                style={active
+                  ? { width: 32, height: 32, borderRadius: 10, background: '#1C1A16' }
+                  : { width: 32, height: 32 }}>
+                {item.emoji}
+              </span>
+              <span className="text-[10px] font-medium" style={{ color: active ? '#1C1A16' : '#9C9488' }}>
+                {item.label}
+              </span>
+            </button>
+          )
+        })}
+      </nav>
 
       {(showAdd || addingFromShopping) && (
         <AddPanel

@@ -1,20 +1,33 @@
 'use client'
-import { daysLeft, statusOf, badgeLabel, formatDate, formatQuantity } from '@/lib/storage'
+import { daysLeft, statusOf, formatDate, formatQuantity } from '@/lib/storage'
 
 export default function ProductCard({ product, onEdit }) {
   const dl = daysLeft(product.expiry)
   const status = statusOf(dl)
-  const label = badgeLabel(dl)
   const qty = formatQuantity(product)
 
   const colors = {
-    urgent: { border: 'border-l-[#C94A2E]', badge: 'bg-[#FAEAE6] text-[#C94A2E]' },
-    warn:   { border: 'border-l-[#C47B1A]', badge: 'bg-[#FBF2E2] text-[#C47B1A]' },
-    ok:     { border: 'border-l-[#3A7D52]', badge: 'bg-[#E5F3EC] text-[#3A7D52]' },
+    urgent: '#C94A2E',
+    warn:   '#C47B1A',
+    ok:     '#3A7D52',
   }
 
+  let dayNumber, dayLabel
+  if (dl < 0) {
+    dayNumber = 'venció'
+    dayLabel = ''
+  } else if (dl === 0) {
+    dayNumber = 'hoy'
+    dayLabel = ''
+  } else {
+    dayNumber = dl
+    dayLabel = 'días'
+  }
+
+  const dayColor = dl < 0 ? '#C94A2E' : colors[status]
+
   return (
-    <div className={`bg-white rounded-2xl p-4 mb-2 flex items-center gap-3 border border-[#E3DED3] border-l-4 ${colors[status].border} active:scale-[0.98] transition-transform cursor-pointer`}
+    <div className="bg-white rounded-2xl p-4 mb-2 flex items-center gap-3 border border-[#EDE9E0] active:scale-[0.98] transition-transform cursor-pointer"
       onClick={() => onEdit && onEdit(product)}>
       <div className="w-12 h-12 rounded-xl bg-[#F5F2EC] flex items-center justify-center text-2xl flex-shrink-0">
         {product.emoji}
@@ -25,9 +38,14 @@ export default function ProductCard({ product, onEdit }) {
           Comprado {formatDate(product.date)}{qty ? ` · ${qty}` : ''} · {product.days}d duración
         </div>
       </div>
-      <span className={`text-[11px] font-semibold px-3 py-1 rounded-full flex-shrink-0 ${colors[status].badge}`}>
-        {label}
-      </span>
+      <div className="flex-shrink-0 text-center leading-none" style={{ minWidth: 36 }}>
+        <div className="serif font-bold" style={{ fontSize: 22, color: dayColor }}>
+          {dayNumber}
+        </div>
+        {dayLabel && (
+          <div className="text-[8px] uppercase tracking-wider text-[#9C9488] mt-0.5">{dayLabel}</div>
+        )}
+      </div>
     </div>
   )
 }
