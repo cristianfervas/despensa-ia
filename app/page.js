@@ -144,7 +144,7 @@ export default function Home() {
   return (
     <>
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-[#EDE9E0] border-b border-[#E3DED3] px-5 pt-10 pb-4">
+      <div className="sticky top-0 z-20 bg-[#EDE9E0] border-b border-[#E3DED3] px-4 pt-10 pb-4">
         <div className="flex justify-between items-center mb-4">
           <h1 className="serif text-[26px] leading-none">
             Des<span className="text-[#C94A2E] italic">pensa</span>
@@ -171,7 +171,7 @@ export default function Home() {
       <NotificationBanner products={products} />
 
       {/* Content */}
-      <div className="px-4 pb-[100px] pt-5">
+      <div className="px-3 pb-[100px] pt-4">
         {tab === 'despensa' && (
           <>
             {products.length === 0 && (
@@ -193,7 +193,7 @@ export default function Home() {
             )}
             {warn.length > 0 && (
               <>
-                {urgent.length > 0 && <div className="h-2" />}
+                {urgent.length > 0 && <div className="h-3" />}
                 <div className="inline-flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full mb-3 mt-3 bg-[#FBF2E2] text-[#C47B1A]">
                   🟡 Usar pronto
                 </div>
@@ -204,7 +204,7 @@ export default function Home() {
             )}
             {ok.length > 0 && (
               <>
-                {(urgent.length > 0 || warn.length > 0) && <div className="h-2" />}
+                {(urgent.length > 0 || warn.length > 0) && <div className="h-3" />}
                 <div className="inline-flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full mb-3 mt-3 bg-[#E5F3EC] text-[#3A7D52]">
                   🟢 Todo bien
                 </div>
@@ -257,8 +257,7 @@ export default function Home() {
       </button>
 
       {/* Bottom nav */}
-      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white border-t border-[#EDE9E0] z-40 flex"
-        style={{ padding: '8px 0 20px' }}>
+      <nav className="fixed bottom-0 left-0 right-0 max-w-[430px] mx-auto bg-white border-t border-[#EDE9E0] z-40 flex px-6 pt-3 pb-6">
         {[
           { key: 'despensa', emoji: '🥡', label: 'Despensa', onClick: () => setTab('despensa') },
           { key: 'recetas',  emoji: '👨‍🍳', label: 'Recetas',  onClick: fetchRecipes },

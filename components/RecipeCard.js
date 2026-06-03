@@ -8,7 +8,7 @@ export default function RecipeCard({ recipe }) {
   const hasMore = steps.length > 2
 
   return (
-    <div className="rounded-[20px] overflow-hidden border border-[#E8E4DA] shadow-[0_1px_3px_rgba(0,0,0,0.06)] mb-3">
+    <div className="rounded-[20px] overflow-hidden border border-[#E8E4DA] shadow-[0_1px_4px_rgba(0,0,0,0.07)] mb-3">
       {/* Hero */}
       <div className="bg-[#1C1A16] p-4">
         <div className="text-[48px] leading-none mb-2">{recipe.emoji || '🍽️'}</div>
