@@ -171,7 +171,7 @@ export default function Home() {
       <NotificationBanner products={products} />
 
       {/* Content */}
-      <div className="px-6 pb-[100px] pt-5">
+      <div className="px-4 pb-[100px] pt-5">
         {tab === 'despensa' && (
           <>
             {products.length === 0 && (
@@ -193,7 +193,8 @@ export default function Home() {
             )}
             {warn.length > 0 && (
               <>
-                <div className="inline-flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full mb-3 mt-2 bg-[#FBF2E2] text-[#C47B1A]">
+                {urgent.length > 0 && <div className="h-2" />}
+                <div className="inline-flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full mb-3 mt-3 bg-[#FBF2E2] text-[#C47B1A]">
                   🟡 Usar pronto
                 </div>
                 {warn.sort((a,b) => daysLeft(a.expiry) - daysLeft(b.expiry)).map(p => (
@@ -203,7 +204,8 @@ export default function Home() {
             )}
             {ok.length > 0 && (
               <>
-                <div className="inline-flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full mb-3 mt-2 bg-[#E5F3EC] text-[#3A7D52]">
+                {(urgent.length > 0 || warn.length > 0) && <div className="h-2" />}
+                <div className="inline-flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full mb-3 mt-3 bg-[#E5F3EC] text-[#3A7D52]">
                   🟢 Todo bien
                 </div>
                 {ok.sort((a,b) => daysLeft(a.expiry) - daysLeft(b.expiry)).map(p => (

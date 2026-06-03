@@ -27,7 +27,7 @@ export default function ProductCard({ product, onEdit }) {
   const dayColor = dl < 0 ? '#C94A2E' : colors[status]
 
   return (
-    <div className="bg-white rounded-2xl p-4 mb-2 flex items-center gap-3 border border-[#EDE9E0] active:scale-[0.98] transition-transform cursor-pointer"
+    <div className="bg-white rounded-2xl p-4 mb-3 mx-1 flex items-center gap-3 border border-[#EDE9E0] shadow-sm active:scale-[0.98] transition-transform cursor-pointer"
       onClick={() => onEdit && onEdit(product)}>
       <div className="w-12 h-12 rounded-xl bg-[#F5F2EC] flex items-center justify-center text-2xl flex-shrink-0">
         {product.emoji}
