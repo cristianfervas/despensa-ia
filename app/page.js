@@ -144,7 +144,7 @@ export default function Home() {
   return (
     <>
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-[#EDE9E0] border-b border-[#E3DED3] px-4 pt-10 pb-4">
+      <div className="sticky top-0 z-20 bg-[#EDE9E0] border-b border-[#E3DED3] px-0 pt-10 pb-4">
         <div className="flex justify-between items-center mb-4">
           <h1 className="serif text-[26px] leading-none">
             Des<span className="text-[#C94A2E] italic">pensa</span>
@@ -171,7 +171,7 @@ export default function Home() {
       <NotificationBanner products={products} />
 
       {/* Content */}
-      <div className="px-3 pb-[100px] pt-4">
+      <div className="px-0 pb-[140px] pt-5">
         {tab === 'despensa' && (
           <>
             {products.length === 0 && (
@@ -252,12 +252,13 @@ export default function Home() {
       {/* FAB */}
       <button
         onClick={() => setShowAdd(true)}
-        className="fixed bottom-24 right-5 bg-[#C94A2E] text-white px-5 py-3 rounded-2xl text-[22px] font-light shadow-lg z-40 active:scale-95 transition-transform flex items-center justify-center w-14 h-14">
+        className="fixed bottom-[76px] right-4 bg-[#C94A2E] text-white rounded-2xl text-[22px] shadow-lg z-40 active:scale-95 transition-transform flex items-center justify-center w-14 h-14">
         +
       </button>
 
       {/* Bottom nav */}
-      <nav className="fixed bottom-0 left-0 right-0 max-w-[430px] mx-auto bg-white border-t border-[#EDE9E0] z-40 flex px-6 pt-3 pb-6">
+      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] bg-white border-t border-[#EDE9E0] z-40 flex"
+        style={{ padding: '8px 16px 24px' }}>
         {[
           { key: 'despensa', emoji: '🥡', label: 'Despensa', onClick: () => setTab('despensa') },
           { key: 'recetas',  emoji: '👨‍🍳', label: 'Recetas',  onClick: fetchRecipes },
@@ -302,7 +303,7 @@ export default function Home() {
       )}
 
       {toast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-[#1C1A16] text-white text-[13px] font-medium px-5 py-3 rounded-full z-50 shadow-lg whitespace-nowrap">
+        <div className="fixed bottom-[150px] left-1/2 -translate-x-1/2 bg-[#1C1A16] text-white text-[13px] font-medium px-5 py-3 rounded-full z-50 shadow-lg whitespace-nowrap">
           {toast}
         </div>
       )}

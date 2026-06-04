@@ -29,12 +29,12 @@
 
 body {
   font-family: 'DM Sans', sans-serif;
-  background: var(--bg);
+  background: #EDE9E0;
   color: var(--ink);
   min-height: 100vh;
-  max-width: 430px;
+  max-width: 480px;
   margin: 0 auto;
-  padding: 0;
+  padding: 0 16px;
 }
 
 .serif { font-family: 'DM Serif Display', serif; }

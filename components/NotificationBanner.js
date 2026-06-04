@@ -18,13 +18,13 @@ export default function NotificationBanner({ products }) {
   if (status === 'loading' || status === 'granted' || status === 'unsupported') return null
 
   if (status === 'denied') return (
-    <div className="mx-3 mt-3 p-3 rounded-xl bg-[#FBF2E2] border border-[#C47B1A]/20 text-[12px] text-[#854F0B]">
+    <div className="mx-0 mt-3 p-3 rounded-xl bg-[#FBF2E2] border border-[#C47B1A]/20 text-[12px] text-[#854F0B]">
       <span className="font-medium">Notificaciones bloqueadas.</span> Actívalas en Configuración → Notificaciones → Despensa IA.
     </div>
   )
 
   return (
-    <div className="mx-3 mt-3 p-3 rounded-xl bg-[#E5F3EC] border border-[#3A7D52]/20 flex items-center justify-between gap-3">
+    <div className="mx-0 mt-3 p-3 rounded-xl bg-[#E5F3EC] border border-[#3A7D52]/20 flex items-center justify-between gap-3">
       <div>
         <div className="text-[13px] font-medium text-[#27500A]">Activar alertas de vencimiento</div>
         <div className="text-[11px] text-[#3B6D11] mt-0.5">Te avisamos cuando algo está por vencer</div>
