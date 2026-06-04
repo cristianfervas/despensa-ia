@@ -21,7 +21,7 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="es" style={{ colorScheme: 'light' }}>
+    <html lang="es" style={{ colorScheme: 'light', height: '100%' }}>
       <head>
         <meta name="color-scheme" content="light" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -36,7 +36,7 @@ export default function RootLayout({ children }) {
           }
         `}} />
       </head>
-      <body style={{ background: '#F5F2EC', overscrollBehavior: 'none' }}>
+      <body style={{ background: '#EDE9E0', overscrollBehavior: 'none', height: '100%' }}>
         {children}
       </body>
     </html>

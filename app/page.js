@@ -143,144 +143,151 @@ export default function Home() {
 
   return (
     <>
-      {/* Header */}
-      <div className="sticky top-0 z-20 bg-[#EDE9E0] border-b border-[#E3DED3] px-0 pt-10 pb-4">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="serif text-[26px] leading-none">
-            Des<span className="text-[#C94A2E] italic">pensa</span>
-          </h1>
-        </div>
-        <div className="flex gap-2">
-          {[
-            { label: 'Urgente', count: urgent.length, style: 'bg-[#FAEAE6] text-[#C94A2E]' },
-            { label: 'Pronto',  count: warn.length,   style: 'bg-[#FBF2E2] text-[#C47B1A]' },
-            { label: 'Ok',      count: ok.length,     style: 'bg-[#E5F3EC] text-[#3A7D52]' },
-          ].map(s => (
-            <div key={s.label} className={`flex-1 rounded-xl p-2.5 text-center ${s.style}`}>
-              <div className="serif text-[20px] font-bold leading-none">{s.count}</div>
-              <div className="text-[10px] uppercase tracking-wider mt-0.5">{s.label}</div>
+      <div className="flex flex-col h-dvh overflow-hidden">
+
+        {/* Header — flex-shrink-0, ya no sticky */}
+        <div className="flex-shrink-0 bg-[#EDE9E0] border-b border-[#E3DED3] pt-10 pb-4">
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="serif text-[26px] leading-none">
+              Des<span className="text-[#C94A2E] italic">pensa</span>
+            </h1>
+            <div className="w-8 h-8 rounded-full bg-[#1C1A16] text-white flex items-center justify-center text-[13px] font-medium">
+              C
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Banner de notificaciones */}
-      <NotificationBanner products={products} />
-
-      {/* Content */}
-      <div className="px-0 pb-[200px] pt-5">
-        {tab === 'despensa' && (
-          <>
-            {products.length === 0 && (
-              <div className="text-center py-16 text-[#9C9488]">
-                <div className="text-5xl mb-3">🛒</div>
-                <div className="serif text-[20px] text-[#6B6559] mb-2">La despensa está vacía</div>
-                <div className="text-[13px]">Toca el botón + para agregar productos</div>
+          </div>
+          <div className="flex gap-2">
+            {[
+              { label: 'Urgente', count: urgent.length, style: 'bg-[#FAEAE6] text-[#C94A2E]' },
+              { label: 'Pronto',  count: warn.length,   style: 'bg-[#FBF2E2] text-[#C47B1A]' },
+              { label: 'Ok',      count: ok.length,     style: 'bg-[#E5F3EC] text-[#3A7D52]' },
+            ].map(s => (
+              <div key={s.label} className={`flex-1 rounded-xl p-2.5 text-center ${s.style}`}>
+                <div className="serif text-[20px] font-bold leading-none">{s.count}</div>
+                <div className="text-[10px] uppercase tracking-wider mt-0.5">{s.label}</div>
               </div>
-            )}
-            {urgent.length > 0 && (
-              <>
-                <div className="inline-flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full mb-3 mt-2 bg-[#FAEAE6] text-[#C94A2E]">
-                  🔴 Usar hoy
-                </div>
-                {urgent.sort((a,b) => daysLeft(a.expiry) - daysLeft(b.expiry)).map(p => (
-                  <ProductCard key={p.id} product={p} onEdit={handleEdit} />
-                ))}
-              </>
-            )}
-            {warn.length > 0 && (
-              <>
-                {urgent.length > 0 && <div className="h-3" />}
-                <div className="inline-flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full mb-3 mt-3 bg-[#FBF2E2] text-[#C47B1A]">
-                  🟡 Usar pronto
-                </div>
-                {warn.sort((a,b) => daysLeft(a.expiry) - daysLeft(b.expiry)).map(p => (
-                  <ProductCard key={p.id} product={p} onEdit={handleEdit} />
-                ))}
-              </>
-            )}
-            {ok.length > 0 && (
-              <>
-                {(urgent.length > 0 || warn.length > 0) && <div className="h-3" />}
-                <div className="inline-flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full mb-3 mt-3 bg-[#E5F3EC] text-[#3A7D52]">
-                  🟢 Todo bien
-                </div>
-                {ok.sort((a,b) => daysLeft(a.expiry) - daysLeft(b.expiry)).map(p => (
-                  <ProductCard key={p.id} product={p} onEdit={handleEdit} />
-                ))}
-              </>
-            )}
-          </>
-        )}
-
-        {tab === 'compras' && (
-          <ShoppingList
-            items={shoppingItems}
-            loading={loadingShoping}
-            onToggle={handleToggle}
-            onAddToDispensa={handleAddToDispensa}
-            onRegenerate={fetchShoppingList}
-            onClearDone={handleClearDone}
-          />
-        )}
-
-        {tab === 'recetas' && (
-          <>
-            {loadingRecipes && (
-              <div className="text-center py-16 text-[#9C9488]">
-                <div className="text-4xl mb-3 animate-bounce">👨‍🍳</div>
-                <div className="text-[14px]">Claude está pensando qué cocinar...</div>
-              </div>
-            )}
-            {!loadingRecipes && recipes.length === 0 && (
-              <div className="text-center py-16 text-[#9C9488]">
-                <div className="text-5xl mb-3">🍽️</div>
-                <div className="serif text-[20px] text-[#6B6559] mb-2">Sin recetas aún</div>
-                <div className="text-[13px]">Agrega productos a tu despensa primero</div>
-              </div>
-            )}
-            {!loadingRecipes && recipes.map((r, i) => (
-              <RecipeCard key={i} recipe={r} />
             ))}
-          </>
-        )}
+          </div>
+        </div>
+
+        {/* Banner notificaciones */}
+        <NotificationBanner products={products} />
+
+        {/* Contenido scrolleable — único elemento que hace scroll */}
+        <div className="flex-1 overflow-y-auto pt-5 pb-6">
+          {tab === 'despensa' && (
+            <>
+              {products.length === 0 && (
+                <div className="text-center py-16 text-[#9C9488]">
+                  <div className="text-5xl mb-3">🛒</div>
+                  <div className="serif text-[20px] text-[#6B6559] mb-2">La despensa está vacía</div>
+                  <div className="text-[13px]">Toca el botón + para agregar productos</div>
+                </div>
+              )}
+              {urgent.length > 0 && (
+                <>
+                  <div className="inline-flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full mb-3 mt-2 bg-[#FAEAE6] text-[#C94A2E]">
+                    🔴 Usar hoy
+                  </div>
+                  {urgent.sort((a,b) => daysLeft(a.expiry) - daysLeft(b.expiry)).map(p => (
+                    <ProductCard key={p.id} product={p} onEdit={handleEdit} />
+                  ))}
+                </>
+              )}
+              {warn.length > 0 && (
+                <>
+                  {urgent.length > 0 && <div className="h-3" />}
+                  <div className="inline-flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full mb-3 mt-3 bg-[#FBF2E2] text-[#C47B1A]">
+                    🟡 Usar pronto
+                  </div>
+                  {warn.sort((a,b) => daysLeft(a.expiry) - daysLeft(b.expiry)).map(p => (
+                    <ProductCard key={p.id} product={p} onEdit={handleEdit} />
+                  ))}
+                </>
+              )}
+              {ok.length > 0 && (
+                <>
+                  {(urgent.length > 0 || warn.length > 0) && <div className="h-3" />}
+                  <div className="inline-flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full mb-3 mt-3 bg-[#E5F3EC] text-[#3A7D52]">
+                    🟢 Todo bien
+                  </div>
+                  {ok.sort((a,b) => daysLeft(a.expiry) - daysLeft(b.expiry)).map(p => (
+                    <ProductCard key={p.id} product={p} onEdit={handleEdit} />
+                  ))}
+                </>
+              )}
+            </>
+          )}
+
+          {tab === 'compras' && (
+            <ShoppingList
+              items={shoppingItems}
+              loading={loadingShoping}
+              onToggle={handleToggle}
+              onAddToDispensa={handleAddToDispensa}
+              onRegenerate={fetchShoppingList}
+              onClearDone={handleClearDone}
+            />
+          )}
+
+          {tab === 'recetas' && (
+            <>
+              {loadingRecipes && (
+                <div className="text-center py-16 text-[#9C9488]">
+                  <div className="text-4xl mb-3 animate-bounce">👨‍🍳</div>
+                  <div className="text-[14px]">Claude está pensando qué cocinar...</div>
+                </div>
+              )}
+              {!loadingRecipes && recipes.length === 0 && (
+                <div className="text-center py-16 text-[#9C9488]">
+                  <div className="text-5xl mb-3">🍽️</div>
+                  <div className="serif text-[20px] text-[#6B6559] mb-2">Sin recetas aún</div>
+                  <div className="text-[13px]">Agrega productos a tu despensa primero</div>
+                </div>
+              )}
+              {!loadingRecipes && recipes.map((r, i) => (
+                <RecipeCard key={i} recipe={r} />
+              ))}
+            </>
+          )}
+        </div>
+
+        {/* Nav inferior — flex-shrink-0, ya no fixed */}
+        <nav className="flex-shrink-0 bg-white border-t border-[#EDE9E0] flex z-30"
+          style={{ padding: '8px 16px 24px' }}>
+          {[
+            { key: 'despensa', emoji: '🥡', label: 'Despensa', onClick: () => setTab('despensa') },
+            { key: 'recetas',  emoji: '👨‍🍳', label: 'Recetas',  onClick: fetchRecipes },
+            { key: 'compras',  emoji: '🛒', label: 'Compras',  onClick: handleShoppingTab },
+          ].map(item => {
+            const active = tab === item.key
+            return (
+              <button
+                key={item.key}
+                onClick={item.onClick}
+                className="flex-1 flex flex-col items-center gap-1">
+                <span
+                  className="flex items-center justify-center text-[18px]"
+                  style={active
+                    ? { width: 32, height: 32, borderRadius: 10, background: '#1C1A16' }
+                    : { width: 32, height: 32 }}>
+                  {item.emoji}
+                </span>
+                <span className="text-[10px] font-medium" style={{ color: active ? '#1C1A16' : '#9C9488' }}>
+                  {item.label}
+                </span>
+              </button>
+            )
+          })}
+        </nav>
+
       </div>
 
-      {/* FAB */}
+      {/* FAB — fixed respecto al viewport, fuera del flex */}
       <button
         onClick={() => setShowAdd(true)}
-        className="fixed bottom-[76px] right-4 bg-[#C94A2E] text-white rounded-2xl text-[22px] shadow-lg z-40 active:scale-95 transition-transform flex items-center justify-center w-14 h-14">
+        className="fixed bottom-[88px] right-4 bg-[#C94A2E] text-white rounded-2xl text-[22px] shadow-lg z-40 active:scale-95 transition-transform flex items-center justify-center w-14 h-14">
         +
       </button>
-
-      {/* Bottom nav */}
-      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] bg-white border-t border-[#EDE9E0] z-40 flex"
-        style={{ padding: '8px 16px 24px' }}>
-        {[
-          { key: 'despensa', emoji: '🥡', label: 'Despensa', onClick: () => setTab('despensa') },
-          { key: 'recetas',  emoji: '👨‍🍳', label: 'Recetas',  onClick: fetchRecipes },
-          { key: 'compras',  emoji: '🛒', label: 'Compras',  onClick: handleShoppingTab },
-        ].map(item => {
-          const active = tab === item.key
-          return (
-            <button
-              key={item.key}
-              onClick={item.onClick}
-              className="flex-1 flex flex-col items-center gap-1">
-              <span
-                className="flex items-center justify-center text-[18px]"
-                style={active
-                  ? { width: 32, height: 32, borderRadius: 10, background: '#1C1A16' }
-                  : { width: 32, height: 32 }}>
-                {item.emoji}
-              </span>
-              <span className="text-[10px] font-medium" style={{ color: active ? '#1C1A16' : '#9C9488' }}>
-                {item.label}
-              </span>
-            </button>
-          )
-        })}
-      </nav>
 
       {(showAdd || addingFromShopping) && (
         <AddPanel
@@ -300,7 +307,7 @@ export default function Home() {
       )}
 
       {toast && (
-        <div className="fixed bottom-[150px] left-1/2 -translate-x-1/2 bg-[#1C1A16] text-white text-[13px] font-medium px-5 py-3 rounded-full z-50 shadow-lg whitespace-nowrap">
+        <div className="fixed bottom-[160px] left-1/2 -translate-x-1/2 bg-[#1C1A16] text-white text-[13px] font-medium px-5 py-3 rounded-full z-50 shadow-lg whitespace-nowrap">
           {toast}
         </div>
       )}
