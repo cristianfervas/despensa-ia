@@ -149,9 +149,6 @@ export default function Home() {
           <h1 className="serif text-[26px] leading-none">
             Des<span className="text-[#C94A2E] italic">pensa</span>
           </h1>
-          <div className="w-8 h-8 rounded-full bg-[#1C1A16] text-white flex items-center justify-center text-[13px] font-medium">
-            C
-          </div>
         </div>
         <div className="flex gap-2">
           {[
@@ -171,7 +168,7 @@ export default function Home() {
       <NotificationBanner products={products} />
 
       {/* Content */}
-      <div className="px-0 pb-[140px] pt-5">
+      <div className="px-0 pb-[200px] pt-5">
         {tab === 'despensa' && (
           <>
             {products.length === 0 && (
